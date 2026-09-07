@@ -1,0 +1,378 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>FDA Calendar &amp; Biotech Catalyst Predictions</title>
+<style>
+  :root {
+    --bg: #0b0e14;
+    --panel: #12161f;
+    --panel-2: #171c27;
+    --border: #232a38;
+    --text: #e6e9ef;
+    --muted: #8b93a7;
+    --accent: #5eb1ff;
+    --green: #3ecf8e;
+    --red: #ff6b6b;
+    --yellow: #f5c451;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  header {
+    padding: 28px 24px 18px;
+    border-bottom: 1px solid var(--border);
+  }
+  header h1 {
+    margin: 0 0 4px;
+    font-size: 22px;
+    letter-spacing: -0.01em;
+  }
+  header p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 14px;
+  }
+  .meta {
+    margin-top: 10px;
+    font-size: 12px;
+    color: var(--muted);
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    padding: 16px 24px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+  }
+  .controls input[type="text"] {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    color: var(--text);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    min-width: 220px;
+  }
+  .controls label {
+    font-size: 13px;
+    color: var(--muted);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    cursor: pointer;
+  }
+  main { padding: 8px 24px 60px; max-width: 1200px; margin: 0 auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  thead th {
+    text-align: left;
+    color: var(--muted);
+    font-weight: 500;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 10px 10px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--bg);
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  tbody tr:hover { background: var(--panel); }
+  tbody td { padding: 12px 10px; vertical-align: top; }
+  .ticker { font-weight: 700; letter-spacing: 0.02em; }
+  .company { color: var(--muted); font-size: 12px; }
+  .days { color: var(--muted); font-size: 12px; white-space: nowrap; }
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+  }
+  .badge.approval { background: rgba(62,207,142,0.15); color: var(--green); }
+  .badge.crl { background: rgba(255,107,107,0.15); color: var(--red); }
+  .badge.delay { background: rgba(245,196,81,0.15); color: var(--yellow); }
+  .badge.bullish { background: rgba(62,207,142,0.15); color: var(--green); }
+  .badge.bearish { background: rgba(255,107,107,0.15); color: var(--red); }
+  .badge.neutral { background: rgba(139,147,167,0.15); color: var(--muted); }
+  .badge.pending { background: rgba(139,147,167,0.1); color: var(--muted); font-style: italic; }
+  .move { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .move.pos { color: var(--green); }
+  .move.neg { color: var(--red); }
+  .prob-bar {
+    height: 5px;
+    width: 100px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    display: flex;
+    margin-top: 4px;
+  }
+  .prob-bar span { display: block; height: 100%; }
+  .detail-row td {
+    background: var(--panel-2);
+    padding: 18px 24px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #cfd4e0;
+  }
+  .detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 18px;
+  }
+  .detail-grid h4 {
+    margin: 0 0 6px;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--muted);
+  }
+  .detail-grid .field { margin-bottom: 10px; }
+  .empty, .loading {
+    text-align: center;
+    color: var(--muted);
+    padding: 60px 20px;
+    font-size: 14px;
+  }
+  footer {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 24px 40px;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.6;
+    border-top: 1px solid var(--border);
+  }
+  a { color: var(--accent); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>FDA Calendar &amp; Biotech Catalyst Predictions</h1>
+  <p>Upcoming PDUFA decisions with a 3-agent trading-signal read (Biotech Analyst &rarr; Probability &rarr; Portfolio Manager)</p>
+  <div class="meta">
+    <span id="last-updated">Loading data&hellip;</span>
+    <span id="row-count"></span>
+  </div>
+</header>
+
+<div class="controls">
+  <input type="text" id="search" placeholder="Filter by ticker, company, or drug&hellip;" />
+  <label><input type="checkbox" id="upcoming-only" checked /> Upcoming only</label>
+  <label><input type="checkbox" id="analyzed-only" /> Analyzed only</label>
+</div>
+
+<main>
+  <table>
+    <thead>
+      <tr>
+        <th>PDUFA Date</th>
+        <th>Ticker</th>
+        <th>Drug / Indication</th>
+        <th>Prediction</th>
+        <th>P(Approval)</th>
+        <th>PM Stance</th>
+        <th>Expected Move</th>
+      </tr>
+    </thead>
+    <tbody id="table-body">
+      <tr><td colspan="7" class="loading">Loading upcoming FDA decisions&hellip;</td></tr>
+    </tbody>
+  </table>
+</main>
+
+<footer>
+  <p><strong>Not investment advice.</strong> Predictions are generated by AI agents (Claude) from public web research and are not a substitute for independent due diligence. PDUFA dates are sourced from public trackers and can shift; verify before acting on anything shown here.</p>
+  <p>Data refreshes weekly via a scheduled pipeline into Supabase. Source: <a href="https://github.com/srikaryallala/fda-calendar-dashboard" target="_blank" rel="noopener">fda-calendar-dashboard</a>.</p>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+  const SUPABASE_URL = "https://hlyqmxfspozfadlcnyhd.supabase.co";
+  const SUPABASE_ANON_KEY = "sb_publishable_9HwbkacYwKXkae1rs-ScGg_FZ2I07fK";
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+  let allRows = [];
+  let expandedKey = null;
+
+  const tbody = document.getElementById("table-body");
+  const searchInput = document.getElementById("search");
+  const upcomingOnly = document.getElementById("upcoming-only");
+  const analyzedOnly = document.getElementById("analyzed-only");
+  const lastUpdatedEl = document.getElementById("last-updated");
+  const rowCountEl = document.getElementById("row-count");
+
+  function fmtDate(d) {
+    return new Date(d + "T00:00:00").toLocaleDateString(undefined, { year: "numeric", month: "short", day: "numeric" });
+  }
+
+  function daysAway(d) {
+    const today = new Date(); today.setHours(0,0,0,0);
+    const target = new Date(d + "T00:00:00");
+    const diff = Math.round((target - today) / 86400000);
+    if (diff === 0) return "today";
+    if (diff < 0) return `${Math.abs(diff)}d ago`;
+    return `in ${diff}d`;
+  }
+
+  function predBadge(pred) {
+    if (!pred) return `<span class="badge pending">No analysis yet</span>`;
+    const cls = pred === "Approval" ? "approval" : pred === "CRL" ? "crl" : "delay";
+    return `<span class="badge ${cls}">${pred}</span>`;
+  }
+
+  function stanceBadge(dir) {
+    if (!dir) return `<span class="badge pending">&mdash;</span>`;
+    return `<span class="badge ${dir.toLowerCase()}">${dir}</span>`;
+  }
+
+  function probBar(pa, pc, pd) {
+    if (pa == null) return "";
+    const a = Math.round(pa * 100), c = Math.round(pc * 100), d = Math.max(0, 100 - a - c);
+    return `<div class="prob-bar">
+      <span style="width:${a}%; background:var(--green)"></span>
+      <span style="width:${c}%; background:var(--red)"></span>
+      <span style="width:${d}%; background:var(--yellow)"></span>
+    </div>`;
+  }
+
+  function moveText(row) {
+    if (row.pm_expected_value_move == null) return `<span class="move" style="color:var(--muted)">&mdash;</span>`;
+    const v = Number(row.pm_expected_value_move);
+    const sign = v > 0 ? "+" : "";
+    const cls = v > 0 ? "pos" : v < 0 ? "neg" : "";
+    return `<span class="move ${cls}">${sign}${v.toFixed(1)}%</span>`;
+  }
+
+  function moneyShort(n) {
+    if (n == null) return "n/a";
+    n = Number(n);
+    if (n >= 1e9) return "$" + (n/1e9).toFixed(1) + "B";
+    if (n >= 1e6) return "$" + (n/1e6).toFixed(0) + "M";
+    return "$" + n.toLocaleString();
+  }
+
+  function rowKey(r) { return `${r.ticker}|${r.drug_name}|${r.pdufa_date}`; }
+
+  function render() {
+    const q = searchInput.value.trim().toLowerCase();
+    let rows = allRows.filter(r => {
+      if (q && !(`${r.ticker} ${r.company} ${r.drug_name}`.toLowerCase().includes(q))) return false;
+      if (upcomingOnly.checked && r.pdufa_date < todayStr()) return false;
+      if (analyzedOnly.checked && !r.analyst_prediction) return false;
+      return true;
+    });
+
+    rowCountEl.textContent = `${rows.length} decision${rows.length === 1 ? "" : "s"} shown`;
+
+    if (rows.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="7" class="empty">No decisions match the current filters.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = rows.map(r => {
+      const key = rowKey(r);
+      const open = key === expandedKey;
+      let html = `<tr data-key="${key}">
+        <td>${fmtDate(r.pdufa_date)}<div class="days">${daysAway(r.pdufa_date)}</div></td>
+        <td><div class="ticker">${r.ticker}</div><div class="company">${r.company}</div></td>
+        <td>${r.drug_name}<div class="company">${r.indication || ""}</div></td>
+        <td>${predBadge(r.analyst_prediction)}</td>
+        <td>${r.prob_approval != null ? Math.round(r.prob_approval*100) + "%" : "&mdash;"}${probBar(r.prob_approval, r.prob_crl, r.prob_delay)}</td>
+        <td>${stanceBadge(r.pm_direction)}</td>
+        <td>${moveText(r)}</td>
+      </tr>`;
+      if (open) {
+        html += `<tr class="detail-row"><td colspan="7">${detailHtml(r)}</td></tr>`;
+      }
+      return html;
+    }).join("");
+
+    tbody.querySelectorAll("tr[data-key]").forEach(tr => {
+      tr.addEventListener("click", () => {
+        const key = tr.getAttribute("data-key");
+        expandedKey = expandedKey === key ? null : key;
+        render();
+      });
+    });
+  }
+
+  function detailHtml(r) {
+    if (!r.analyst_prediction) {
+      return `<div class="empty" style="padding:6px 0;">No agent analysis has run for this decision yet &mdash; it's outside the current 45-day analysis window, or the weekly job hasn't reached it.</div>`;
+    }
+    return `<div class="detail-grid">
+      <div>
+        <h4>Biotech Analyst</h4>
+        <div class="field">${predBadge(r.analyst_prediction)} &middot; confidence ${Math.round(r.analyst_confidence*100)}%</div>
+        <div>${r.analyst_rationale || ""}</div>
+      </div>
+      <div>
+        <h4>Probability Agent</h4>
+        <div class="field">Approval ${Math.round(r.prob_approval*100)}% &middot; CRL ${Math.round(r.prob_crl*100)}% &middot; Delay ${Math.round(r.prob_delay*100)}%</div>
+        <div>${r.probability_rationale || ""}</div>
+      </div>
+      <div>
+        <h4>Portfolio Manager</h4>
+        <div class="field">
+          ${stanceBadge(r.pm_direction)} &middot; expected move ${moveText(r)}<br/>
+          ${r.pm_move_up_low != null ? `Bull case: +${r.pm_move_up_low}% to +${r.pm_move_up_high}%<br/>` : ""}
+          ${r.pm_move_down_low != null ? `Bear case: ${r.pm_move_down_low}% to ${r.pm_move_down_high}%<br/>` : ""}
+          Price/mkt cap at analysis: ${r.price_at_analysis != null ? "$" + Number(r.price_at_analysis).toFixed(2) : "n/a"} &middot; ${moneyShort(r.market_cap_at_analysis)}
+        </div>
+        <div>${r.pm_rationale || ""}</div>
+      </div>
+    </div>`;
+  }
+
+  function todayStr() {
+    const d = new Date();
+    return d.toISOString().slice(0,10);
+  }
+
+  async function load() {
+    const { data, error } = await sb
+      .from("fda_dashboard")
+      .select("*")
+      .order("pdufa_date", { ascending: true });
+
+    if (error) {
+      tbody.innerHTML = `<tr><td colspan="7" class="empty">Couldn't load data: ${error.message}</td></tr>`;
+      lastUpdatedEl.textContent = "Load failed";
+      return;
+    }
+
+    allRows = data;
+    const scrapedTimes = data.map(r => r.scraped_at).filter(Boolean).sort();
+    const latest = scrapedTimes[scrapedTimes.length - 1];
+    lastUpdatedEl.textContent = latest
+      ? `Calendar last refreshed ${new Date(latest).toLocaleString()}`
+      : "Live from Supabase";
+    render();
+  }
+
+  searchInput.addEventListener("input", render);
+  upcomingOnly.addEventListener("change", render);
+  analyzedOnly.addEventListener("change", render);
+
+  load();
+</script>
+</body>
+</html>
